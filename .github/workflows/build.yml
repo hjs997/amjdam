@@ -1,0 +1,28 @@
+name: Build Debian Package
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y dpkg-dev fakeroot
+
+      - name: Create package structure
+        run: |
+          mkdir -p mynodeapp/DEBIAN
+          mkdir -p mynodeapp/usr/local/bin
+          echo 'Package: mynodeapp\nVersion: 1.0.0\nArchitecture: all\nMaintainer: You\nDescription: Node.js App' > mynodeapp/DEBIAN/control
+          cp index.js package.json mynodeapp/usr/local/bin/
+
+      - name: Build .deb package
+        run: dpkg-deb --build mynodeapp mynodeapp.deb
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: mynodeapp.deb
+          path: mynodeapp.deb
