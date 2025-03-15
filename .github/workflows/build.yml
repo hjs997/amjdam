@@ -1,9 +1,14 @@
 name: Build Debian Package
-on: push
+
+on: 
+  push:
+    branches:
+      - main  # 触发构建的分支
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -11,17 +16,27 @@ jobs:
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y dpkg-dev fakeroot
 
-      - name: Create package structure
+      - name: Create Debian package structure
         run: |
           mkdir -p mynodeapp/DEBIAN
           mkdir -p mynodeapp/usr/local/bin
-          echo 'Package: mynodeapp\nVersion: 1.0.0\nArchitecture: all\nMaintainer: You\nDescription: Node.js App' > mynodeapp/DEBIAN/control
+
+          cat <<EOF > mynodeapp/DEBIAN/control
+          Package: mynodeapp
+          Version: 1.0.0
+          Section: base
+          Priority: optional
+          Architecture: all
+          Maintainer: Your Name <your.email@example.com>
+          Description: A simple Node.js application packaged as a Debian package.
+          EOF
+
           cp index.js package.json mynodeapp/usr/local/bin/
 
       - name: Build .deb package
         run: dpkg-deb --build mynodeapp mynodeapp.deb
 
-      - name: Upload artifact
+      - name: Upload Debian package artifact
         uses: actions/upload-artifact@v3
         with:
           name: mynodeapp.deb
